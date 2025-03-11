@@ -1,63 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GitHubUserProfile } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Star } from "lucide-react";
+import { formatDate } from "@/utils/helpers";
 
 interface UserProfileProps {
-	username: string;
+	user: GitHubUserProfile;
 }
 
-const UserProfile = ({ username }: UserProfileProps) => {
+const UserProfile = ({ user }: UserProfileProps) => {
 	const router = useRouter();
-	const [user, setUser] = useState<GitHubUserProfile | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
 	const [isStarred, setIsStarred] = useState(false);
 
-	useEffect(() => {
-		const fetchUser = async () => {
-			try {
-				const response = await fetch(
-					`https://api.github.com/users/${username}`
-				);
-				if (!response.ok) {
-					throw new Error(`Error: ${response.status}`);
-				}
-				const data: GitHubUserProfile = await response.json();
-				setUser(data);
-			} catch (err) {
-				setError(
-					err instanceof Error ? err.message : "An unexpected error occurred"
-				);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
-		fetchUser();
-	}, [username]);
-
-	if (isLoading) {
-		return <p>Loading...</p>;
-	}
-
-	if (error) {
-		return <p style={{ color: "red" }}>{error}</p>;
-	}
-
-	if (!user) {
-		return <p>No user found</p>;
-	}
+	if (!user) return <p>loading ...</p>;
 
 	const toggleStar = () => {
 		setIsStarred((prev) => !prev);
 	};
 
 	return (
-		<div className="flex justify-center items-center flex-col gap-8 bg-white/50 p-8 rounded-lg shadow-lg">
+		<div className="flex justify-center items-center flex-col gap-8 bg-white/50 p-8 rounded-lg shadow-lg min-w-lg">
 			<div className="flex justify-between w-full items-center">
 				<button
 					className="cursor-pointer rounded-sm border p-[1rem] hover:bg-gray-100 hover:text-gray-800"
@@ -66,6 +31,7 @@ const UserProfile = ({ username }: UserProfileProps) => {
 					Back
 				</button>
 				<Star
+					aria-label="Star"
 					className={`cursor-pointer ${
 						isStarred ? "fill-yellow-400" : "fill-none"
 					}`}
@@ -77,9 +43,9 @@ const UserProfile = ({ username }: UserProfileProps) => {
 			<Image
 				src={user.avatar_url}
 				alt={`${user.login}'s avatar`}
-				style={{ width: "100px", height: "100px", borderRadius: "50%" }}
 				width={100}
 				height={100}
+				className="rounded-full"
 			/>
 			<p>{user.bio}</p>
 			<ul>
@@ -106,8 +72,7 @@ const UserProfile = ({ username }: UserProfileProps) => {
 					<strong>Twitter:</strong> {user.twitter_username || "Not specified"}
 				</li>
 				<li>
-					<strong>Joined:</strong>{" "}
-					{new Date(user.created_at).toLocaleDateString()}
+					<strong>Joined:</strong> {formatDate(user.created_at)}
 				</li>
 			</ul>
 		</div>

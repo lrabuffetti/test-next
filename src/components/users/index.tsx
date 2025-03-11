@@ -10,8 +10,10 @@ const Users = () => {
 	const [searchResults, setSearchResults] =
 		useState<GitHubUserSearchResult | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
 
 	useEffect(() => {
+		setIsLoading(true);
 		const fetchRandomUsers = async () => {
 			try {
 				const response = await fetch("/api/users");
@@ -20,15 +22,21 @@ const Users = () => {
 				}
 				const data: GitHubUser[] = await response.json();
 				setUsers(data);
+				setIsLoading(false);
 			} catch (err) {
 				setError(
 					err instanceof Error ? err.message : "An unexpected error occurred"
 				);
+				setIsLoading(false);
 			}
 		};
 
 		fetchRandomUsers();
 	}, []);
+
+	if (isLoading) {
+		return <p>Loading...</p>;
+	}
 
 	return (
 		<div className="flex flex-col items-center gap-4">
